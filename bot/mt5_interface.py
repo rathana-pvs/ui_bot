@@ -67,7 +67,6 @@ class MT5Interface:
         # Real MT5 Initialization with custom path and credentials support
         mt5_path = get_env_var("MT5_PATH")
         mt5_login_str = get_env_var("MT5_LOGIN")
-        mt5_password = get_env_var("MT5_PASSWORD")
         mt5_server = get_env_var("MT5_SERVER")
         
         init_kwargs = {}
@@ -80,13 +79,10 @@ class MT5Interface:
             except ValueError:
                 logger.error(f"Invalid MT5_LOGIN value in environment: {mt5_login_str}. Must be an integer.")
                 
-        if mt5_password:
-            init_kwargs["password"] = mt5_password
-            
         if mt5_server:
             init_kwargs["server"] = mt5_server
             
-        logger.info(f"Initializing MT5 terminal (Real Mode) with args: { {k: (v if k != 'password' else '***') for k, v in init_kwargs.items()} }")
+        logger.info(f"Initializing MT5 terminal (Real Mode) with args: {init_kwargs}")
         
         init_success = mt5.initialize(**init_kwargs)
             
