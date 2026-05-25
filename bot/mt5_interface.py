@@ -64,16 +64,31 @@ class MT5Interface:
             logger.info("Initializing MT5 Interface in MOCK/DRY-RUN Mode.")
             return True
         
-        # Real MT5 Initialization with custom path support
+        # Real MT5 Initialization with custom path and credentials support
         mt5_path = get_env_var("MT5_PATH")
-        init_success = False
+        mt5_login_str = get_env_var("MT5_LOGIN")
+        mt5_password = get_env_var("MT5_PASSWORD")
+        mt5_server = get_env_var("MT5_SERVER")
         
+        init_kwargs = {}
         if mt5_path:
-            logger.info(f"Initializing MT5 terminal from custom path: {mt5_path}")
-            init_success = mt5.initialize(path=mt5_path)
-        else:
-            logger.info("Initializing MT5 terminal from default path")
-            init_success = mt5.initialize()
+            init_kwargs["path"] = mt5_path
+            
+        if mt5_login_str:
+            try:
+                init_kwargs["login"] = int(mt5_login_str)
+            except ValueError:
+                logger.error(f"Invalid MT5_LOGIN value in environment: {mt5_login_str}. Must be an integer.")
+                
+        if mt5_password:
+            init_kwargs["password"] = mt5_password
+            
+        if mt5_server:
+            init_kwargs["server"] = mt5_server
+            
+        logger.info(f"Initializing MT5 terminal (Real Mode) with args: { {k: (v if k != 'password' else '***') for k, v in init_kwargs.items()} }")
+        
+        init_success = mt5.initialize(**init_kwargs)
             
         if not init_success:
             logger.error(f"MT5 Initialization failed. Error code: {mt5.last_error()}")
