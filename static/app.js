@@ -4,6 +4,13 @@ let isBotActive = false;
 document.addEventListener("DOMContentLoaded", () => {
     initWebSocket();
     setupEventListeners();
+    
+    // Register Service Worker for PWA installability
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js')
+            .then(() => console.log('Service Worker Registered'))
+            .catch(err => console.error('Service Worker registration failed:', err));
+    }
 });
 
 // Initialize WebSocket Connection (auto-handles HTTP/HTTPS to WS/WSS for tunneling)

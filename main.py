@@ -55,6 +55,10 @@ async def get_dashboard():
     with open("templates/index.html", "r") as f:
         return HTMLResponse(content=f.read())
 
+@app.get("/sw.js")
+async def service_worker():
+    return FileResponse("static/sw.js", media_type="application/javascript")
+
 
 # --- REST API Endpoints ---
 
