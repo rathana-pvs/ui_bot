@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Exness Volatility Adaptive Trading Bot</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="glass-bg"></div>
+    <div class="app-container">
+        
+        <!-- Header -->
+        <header>
+            <div class="logo-section">
+                <h1>Volatility Adaptive Bot</h1>
+                <span class="platform-badge">EXNESS / MT5</span>
+            </div>
+            <div class="connection-status" id="connection-status">
+                <span class="status-dot disconnected"></span>
+                <span class="status-text">Connecting...</span>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Layout -->
+        <main class="dashboard-grid">
+            
+            <!-- Controls & Account Card -->
+            <section class="card control-card">
+                <h2>Control Panel</h2>
+                
+                <!-- Bot Power Toggle -->
+                <div class="control-row power-row">
+                    <span class="control-label">Bot Execution:</span>
+                    <button id="btn-toggle-bot" class="power-btn off">OFF</button>
+                </div>
+
+                <hr class="divider">
+
+                <!-- Risk Profile Selection -->
+                <div class="control-row risk-row">
+                    <span class="control-label">Risk Profile:</span>
+                    <div class="risk-selector">
+                        <button class="risk-btn safe active" onclick="setRiskProfile('safe')">Safe (1%)</button>
+                        <button class="risk-btn moderate" onclick="setRiskProfile('moderate')">Mod (2.5%)</button>
+                        <button class="risk-btn risk" onclick="setRiskProfile('risk')">Risk (5%)</button>
+                    </div>
+                </div>
+
+                <hr class="divider">
+
+                <!-- Account Stats -->
+                <div class="account-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Balance</span>
+                        <span class="stat-value" id="val-balance">$0.00</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Equity</span>
+                        <span class="stat-value" id="val-equity">$0.00</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Floating Profit</span>
+                        <span class="stat-value neutral" id="val-profit">$0.00</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Margin Level</span>
+                        <span class="stat-value" id="val-margin-level">100%</span>
+                    </div>
+                </div>
+                
+                <div class="server-info">
+                    <span id="val-server">Server: Disconnected</span> | Account: <span id="val-login">---</span>
+                </div>
+            </section>
+
+            <!-- Regime Cards (Dynamic Volatility Info) -->
+            <section class="regime-section">
+                
+                <!-- Gold (XAUUSD) Card -->
+                <div class="card asset-card" id="card-xauusd">
+                    <div class="asset-header">
+                        <h2>Gold / USD (XAUUSD)</h2>
+                        <span class="regime-badge unknown" id="badge-xauusd">UNKNOWN</span>
+                    </div>
+                    <div class="metrics-grid">
+                        <div class="metric-item">
+                            <span class="metric-label">M15 Volatility (ATR)</span>
+                            <span class="metric-value" id="metric-xau-atr">0.00</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">ATR 50-SMA Threshold</span>
+                            <span class="metric-value" id="metric-xau-atr-sma">0.00</span>
+                        </div>
+                        <div class="metric-item full-width" id="metric-xau-substate">
+                            <span class="metric-label">Sub-indicators:</span>
+                            <div class="sub-indicators" id="sub-xauusd">Waiting for ticks...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Silver (XAGUSD) Card -->
+                <div class="card asset-card" id="card-xagusd">
+                    <div class="asset-header">
+                        <h2>Silver / USD (XAGUSD)</h2>
+                        <span class="regime-badge unknown" id="badge-xagusd">UNKNOWN</span>
+                    </div>
+                    <div class="metrics-grid">
+                        <div class="metric-item">
+                            <span class="metric-label">M15 Volatility (ATR)</span>
+                            <span class="metric-value" id="metric-xag-atr">0.00</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">ATR 50-SMA Threshold</span>
+                            <span class="metric-value" id="metric-xag-atr-sma">0.00</span>
+                        </div>
+                        <div class="metric-item full-width" id="metric-xag-substate">
+                            <span class="metric-label">Sub-indicators:</span>
+                            <div class="sub-indicators" id="sub-xagusd">Waiting for ticks...</div>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- Open Positions -->
+            <section class="card positions-card full-width">
+                <div class="positions-header">
+                    <h2>Active Positions</h2>
+                    <button class="close-all-btn" onclick="closeAllPositions()">Close All Trades</button>
+                </div>
+                <div class="table-container" id="positions-table-container">
+                    <table class="positions-table" id="positions-table">
+                        <thead>
+                            <tr>
+                                <th>Ticket</th>
+                                <th>Symbol</th>
+                                <th>Type</th>
+                                <th>Volume</th>
+                                <th>Open Price</th>
+                                <th>Current Price</th>
+                                <th>Profit</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="positions-body">
+                            <tr>
+                                <td colspan="8" style="text-align: center; color: rgba(255,255,255,0.4);">No active positions.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Mobile-only layout cards -->
+                <div class="mobile-positions-list" id="mobile-positions-list">
+                    <!-- Cards will be populated dynamically -->
+                </div>
+            </section>
+
+            <!-- Log Console -->
+            <section class="card logs-card full-width">
+                <h2>Execution Log</h2>
+                <div class="console-box" id="console-box">
+                    <div class="log-line text-muted">Web console initialized. Waiting for bot engine logs...</div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- App JavaScript -->
+    <script src="/static/app.js"></script>
+</body>
+</html>
